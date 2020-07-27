@@ -1,0 +1,13 @@
+<div>
+<p>cart works!</p>
+<div>items: {{items | json}}</div>
+<div>
+    <div *ngFor="let itemObj of items">{{itemObj}}</div>
+</div>
+
+<div>item: {{item}}</div>
+<div>
+    <input [(ngModel)]="item" placeholder="Enter item" />
+    <button (click)="addItem()">AddItem</button>
+</div>
+</div>
