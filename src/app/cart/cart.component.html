@@ -1,13 +1,6 @@
-<div>
-<p>cart works!</p>
-<div>items: {{items | json}}</div>
-<div>
-    <div *ngFor="let itemObj of items">{{itemObj}}</div>
-</div>
+<div class="cartcontainer">
+    <h2>cart component</h2>
+    <div id="chartdivcart" style="width: 100%; height: 300px"></div>
+    <router-outlet></router-outlet>
 
-<div>item: {{item}}</div>
-<div>
-    <input [(ngModel)]="item" placeholder="Enter item" />
-    <button (click)="addItem()">AddItem</button>
-</div>
 </div>

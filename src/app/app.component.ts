@@ -64,73 +64,116 @@ export class AppComponent {
     console.log(transformeddata);
     return transformeddata;
 }
+  createAxisAndSeries(field, name, opposite, bullet,chart) {
+    let valueAxis:any = chart.yAxes.push(new am4charts.ValueAxis());
+    if(chart.yAxes.indexOf(valueAxis) != 0){
+      valueAxis.syncWithAxis = chart.yAxes.getIndex(0);
+    }
+    
+    let series = chart.series.push(new am4charts.LineSeries());
+    series.dataFields.valueY = field;
+    series.dataFields.dateX = "date";
+    series.strokeWidth = 2;
+    series.yAxis = valueAxis;
+    series.name = name;
+    series.tooltipText = "{name}: [bold]{valueY}[/]";
+    series.tensionX = 0.8;
+    series.showOnInit = true;
+    
+    let interfaceColors = new am4core.InterfaceColorSet();
+    //let bullet1:any=null;
 
-
+    switch(bullet) {
+      case "triangle":
+        const bullet1 = series.bullets.push(new am4charts.Bullet());
+        bullet1.width = 12;
+        bullet1.height = 12;
+        bullet1.horizontalCenter = "middle";
+        bullet1.verticalCenter = "middle";
+        
+        let triangle = bullet1.createChild(am4core.Triangle);
+        triangle.stroke = interfaceColors.getFor("background");
+        triangle.strokeWidth = 2;
+        triangle.direction = "top";
+        triangle.width = 12;
+        triangle.height = 12;
+        break;
+      case "rectangle":
+        const bullet2:any = series.bullets.push(new am4charts.Bullet());
+        bullet2.width = 10;
+        bullet2.height = 10;
+        bullet2.horizontalCenter = "middle";
+        bullet2.verticalCenter = "middle";
+        
+        let rectangle = bullet2.createChild(am4core.Rectangle);
+        rectangle.stroke = interfaceColors.getFor("background");
+        rectangle.strokeWidth = 2;
+        rectangle.width = 10;
+        rectangle.height = 10;
+        break;
+      default:
+        const bullet3:any = series.bullets.push(new am4charts.CircleBullet());
+        bullet3.circle.stroke = interfaceColors.getFor("background");
+        bullet3.circle.strokeWidth = 2;
+        break;
+    }
+    
+    valueAxis.renderer.line.strokeOpacity = 1;
+    valueAxis.renderer.line.strokeWidth = 2;
+    valueAxis.renderer.line.stroke = series.stroke;
+    valueAxis.renderer.labels.template.fill = series.stroke;
+    valueAxis.renderer.opposite = opposite;
+  }
+  generateChartData() {
+    let chartData = [];
+    let firstDate = new Date();
+    firstDate.setDate(firstDate.getDate() - 100);
+    firstDate.setHours(0, 0, 0, 0);
+  
+    let visits = 1600;
+    let hits = 2900;
+    let views = 8700;
+  
+    for (var i = 0; i < 15; i++) {
+      // we create date objects here. In your data, you can have date strings
+      // and then set format of your dates using chart.dataDateFormat property,
+      // however when possible, use date objects, as this will speed up chart rendering.
+      let newDate = new Date(firstDate);
+      newDate.setDate(newDate.getDate() + i);
+  
+      visits += Math.round((Math.random()<0.5?1:-1)*Math.random()*10);
+      hits += Math.round((Math.random()<0.5?1:-1)*Math.random()*10);
+      views += Math.round((Math.random()<0.5?1:-1)*Math.random()*10);
+  
+      chartData.push({
+        date: newDate,
+        visits: visits,
+        hits: hits,
+        views: views
+      });
+    }
+    return chartData;
+  }
   ngAfterViewInit() {
     this.zone.runOutsideAngular(() => {
       let chart = am4core.create("chartdiv", am4charts.XYChart);
 
-      chart.paddingRight = 20;
+      chart.colors.step = 2;
+      let datadump = this.generateChartData();
+      console.log("datadump ",datadump);
 
-      let data = [];
-      let visits = 10;
-      // for (let i = 1; i < 31; i++) {
-      //   //visits += Math.round((Math.random() < 0.5 ? 1 : -1) * Math.random() * 10);
-      //   visits =Math.floor(Math.random()*500);
-      //   data.push({ date: new Date(2020, 0, i), name: "name" + i, value: visits });
-      // }
-      let sorted:any = this.transformTimelineData(dumpdata);
-    
-      for (let i = 0; i < sorted.length; i++) {
-        let item = sorted[i];
-        data.push({ date: item.cardStatusUpdatedAt, name1: item.dealTitle, currentValue: item.value,previousValue: item.value1 });
-      }
 
-      console.log("data ",data)
-      chart.data = data;
-
-      let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-      dateAxis.renderer.grid.template.location = 0;
+      chart.data =datadump;
+      let dateAxis:any = chart.xAxes.push(new am4charts.DateAxis());
+      dateAxis.renderer.minGridDistance = 50;
       
-      let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-      valueAxis.tooltip.disabled = true;
-      valueAxis.renderer.minWidth = 35;
-
-      let series1 = chart.series.push(new am4charts.LineSeries());
-      series1.dataFields.dateX = "date";
-      series1.name="Current Month";
-      series1.dataFields.valueY = "currentValue";
-      series1.strokeWidth= 3;
-      //series1.tooltipText = "{valueY.value}";
-      series1.tooltipText = "Current: {valueY}";
-      series1.showOnInit = true;
-
-
-      let series2 = chart.series.push(new am4charts.LineSeries());
-      series2.dataFields.dateX = "date";
-      series2.name="Previous Month";
-      series2.dataFields.valueY = "previousValue";
-      //series2.strokeWidth= 5;
-      //series2.fill=;
-      series2.strokeDasharray="3,3";
-      series2.strokeWidth= 3;
-      series2.stroke = am4core.color("#CDA2AB");
-      series2.tooltipText = "Previous: {valueY}";
-      series2.tooltip.getFillFromObject = false;
-      series2.tooltip.background.fill = am4core.color("#CDA2AB");
-      series2.showOnInit = true;
-      //series2.tooltip.userClassName="series2";
-      
-      //series2.tooltip.background.stroke = am4core.color("red");
-      //series2.tooltip.background.fill = am4core.color("orange");
-      //series2.tooltip.background.className="series2";
-      
+      this.createAxisAndSeries("visits", "Visits", false, "circle",chart);
+      this.createAxisAndSeries("views", "Views", true, "triangle",chart);
+      this.createAxisAndSeries("hits", "Hits", true, "rectangle",chart);
+       
       chart.cursor = new am4charts.XYCursor();
       chart.legend = new am4charts.Legend();
-      // let scrollbarX = new am4charts.XYChartScrollbar();
-      // scrollbarX.series.push(series);
-      // chart.scrollbarX = scrollbarX;
-
+     
       this.chart = chart;
     });
   }
